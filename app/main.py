@@ -1,7 +1,10 @@
 import json
 import os
 import random
+from enum import Enum
+
 import bottle
+import numpy as np
 
 from app.api import ping_response, start_response, move_response, end_response
 
@@ -40,10 +43,18 @@ def start():
             request's data if necessary.
     """
     print(json.dumps(data))
-
     color = "#736CCB"
 
     return start_response(color)
+
+
+class BoardPieces(Enum):
+    EMPTY = 0
+    FOOD = 1
+    ENEMY = 2
+    ENEMY_HEAD = 3
+    HEAD = 4
+    BODY = 5
 
 
 @bottle.post('/move')
@@ -54,11 +65,70 @@ def move():
     TODO: Using the data from the endpoint request object, your
             snake AI must choose a direction to move in.
     """
-    print(json.dumps(data))
 
-    directions = ['up', 'down', 'left', 'right']
-    direction = random.choice(directions)
+    print(data)
 
+    board = data["board"]
+    food = board["food"]
+    snakes = data["snakes"]
+    you = data["snakes"]["you"]
+    game_id = data["game"]["id"]
+    game_turn = data["game"]["turn"]
+
+    game_board = np.zeros(shape=(board["width"], board["height"]))
+
+    # Add food
+    for f in food:
+        fx = f["x"]
+        fy = f["y"]
+        game_board[fx][fy] = BoardPieces.FOOD.value
+
+    # Add Snakes
+    for s in snakes:
+        for index, b in enumerate(s["body"]):
+            bx = b["x"]
+            by = b["y"]
+            game_board[bx][by] = BoardPieces.ENEMY_HEAD.value \
+                                    if index == 0 \
+                                    else BoardPieces.ENEMY.value
+
+    # Add self
+    our_head = None
+    direction = 0
+    for index, y in enumerate(you["body"]):
+        bx = y["x"]
+        by = y["y"]
+        if index == 0:
+            our_head = (bx, by)
+        game_board[bx][by] = BoardPieces.HEAD.value \
+                                if index == 0 \
+                                else BoardPieces.BODY.value
+
+    possible_moves = []
+
+    # Left, right, up, down
+    moves = [(1, 0), (-1, 0), (0, 1), (0, -1)]
+    for x, y in moves:
+        # Check surroundings
+        next_square = (our_head[0] + x, our_head[1] + y)
+
+        # check for out of bounds
+        if next_square[0] < 0 or next_square[0] > game_board.size[0] or \
+            next_square[1] < 0 or next_square[1] > game_board.size[1]:
+            continue
+
+        if game_board[next_square[0]][next_square[1]] in [BoardPieces.FOOD.value, BoardPieces.EMPTY.value]:
+            possible_moves.append((x, y))
+
+
+    directions = ['left', 'right', 'up', 'down']
+
+    moves_zipped = zip(directions, moves)
+    # [("left", (1, 0))]
+
+    my_directions = [i for i, j in moves_zipped if j in possible_moves]
+
+    direction = random.choice(my_directions)
     return move_response(direction)
 
 
