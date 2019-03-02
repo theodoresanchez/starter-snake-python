@@ -113,8 +113,8 @@ def move():
         next_square = (our_head[0] + x, our_head[1] + y)
 
         # check for out of bounds
-        if next_square[0] > 0 or next_square[0] < game_board.size[0] or \
-            next_square[1] > 0 or next_square[1] < game_board.size[1]:
+        if next_square[0] < 0 or next_square[0] > game_board.size[0] or \
+            next_square[1] < 0 or next_square[1] > game_board.size[1]:
             continue
 
         if game_board[next_square[0]][next_square[1]] in [BoardPieces.FOOD.value, BoardPieces.EMPTY.value]:
