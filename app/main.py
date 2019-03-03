@@ -43,11 +43,11 @@ def start():
             request's data if necessary.
     """
     print(json.dumps(data))
-    color = "#C0C0C0"
-    headType = "evil"
-    tailType = "bolt"
+    color = "#000000"
+    # headType = "evil"
+    # tailType = "bolt"
 
-    return start_response(color, headType, tailType)
+    return start_response(color)
 
 
 class BoardPieces(Enum):
