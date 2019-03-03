@@ -43,7 +43,7 @@ def start():
             request's data if necessary.
     """
     print(json.dumps(data))
-    color = "#000000"
+    color = "#736CCB"
     # headType = "evil"
     # tailType = "bolt"
 
